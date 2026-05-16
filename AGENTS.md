@@ -12,6 +12,9 @@ ASTRA-sim is a C++17 distributed AI system simulator. It is not a web service; i
 | Lint (clang-format) | `clang-format --dry-run --Werror <file>` |
 | Run example (congestion unaware) | `./examples/run_scripts/analytical/congestion_unaware/Ring_reducescatter_4npus.sh` |
 | Run example (congestion aware) | `./examples/run_scripts/analytical/congestion_aware/Ring_allgather_16npus.sh` |
+| Build (ns-3 backend) | `./build/astra_ns3/build.sh -c` |
+| Clean ns-3 build | `./build/astra_ns3/build.sh -l` |
+| Run ns-3 example | `./examples/run_scripts/ns3/Ring_allgather_16npus.sh` |
 
 ### Non-obvious gotchas
 
@@ -20,4 +23,7 @@ ASTRA-sim is a C++17 distributed AI system simulator. It is not a web service; i
 - **Git submodules must be initialized**: All source code for external components (chakra, fmt, spdlog, analytical backends, etc.) lives in git submodules. `git submodule update --init --recursive` is required before any build.
 - **Build artifacts location**: The analytical backend binaries are at `build/astra_analytical/build/bin/AstraSim_Analytical_Congestion_Aware` and `build/astra_analytical/build/bin/AstraSim_Analytical_Congestion_Unaware`.
 - **Regression test workload generation**: Tests use `python3` to generate Chakra trace files via `tests/rt_template/inputs/workload/gen_chakra_traces.py`, which depends on the Chakra Python package.
-- **ns-3 and HTSim backends are optional**: Only the analytical backend is needed for core development and CI tests. ns-3 requires OpenMPI.
+- **ns-3 backend requires OpenMPI**: Install `openmpi-bin openmpi-doc libopenmpi-dev` before building the ns-3 backend. The ns-3 build takes ~2 minutes.
+- **ns-3 flow.txt prerequisite**: Before running ns-3 examples, the file `extern/network_backend/ns-3/scratch/output/flow.txt` must exist with content `0` (zero flows). Without it the simulation fails with "cannot open flow file". Create it with `echo "0" > extern/network_backend/ns-3/scratch/output/flow.txt`.
+- **ns-3 binary location**: The ns-3 binary is at `extern/network_backend/ns-3/build/scratch/ns3.42-AstraSimNetwork-default`. Examples must be run from the `build/scratch/` directory.
+- **HTSim backend is optional**: Only analytical and ns-3 backends are needed for CI tests.
