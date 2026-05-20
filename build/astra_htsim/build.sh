@@ -6,24 +6,7 @@ set -x
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 PROJECT_DIR="${SCRIPT_DIR:?}/../.."
 BUILD_DIR="${SCRIPT_DIR:?}"/build
-CHAKRA_ET_DIR="${SCRIPT_DIR:?}"/../../extern/graph_frontend/chakra/schema/protobuf
-
 # set functions
-function compile_chakra_et() {
-  # compile et_def.proto if one doesn't exist
-  if [[ ! -f "${CHAKRA_ET_DIR:?}"/et_def.pb.h || ! -f "${CHAKRA_ET_DIR:?}"/et_def.pb.cc ]]; then
-    protoc et_def.proto \
-      --proto_path="${CHAKRA_ET_DIR:?}" \
-      --cpp_out="${CHAKRA_ET_DIR:?}"
-  fi
-
-  if [[ ! -f "${CHAKRA_ET_DIR:?}"/et_def_pb2.py ]]; then
-    protoc et_def.proto \
-      --proto_path="${CHAKRA_ET_DIR:?}" \
-      --python_out="${CHAKRA_ET_DIR:?}"
-  fi
-}
-
 function setup() {
   # make build directory if one doesn't exist
   if [[ ! -d "${BUILD_DIR:?}" ]]; then
@@ -67,9 +50,6 @@ function compile_astrasim_htsim_as_debug() {
 
 function cleanup() {
   rm -rf "${BUILD_DIR:?}"
-  rm -f "${CHAKRA_ET_DIR}/et_def.pb.cc"
-  rm -f "${CHAKRA_ET_DIR}/et_def.pb.h"
-  rm -f "${CHAKRA_ET_DIR}/et_def_pb2.py"
 }
 
 # set default option values
@@ -97,7 +77,6 @@ if [[ ${should_clean:?} == true ]]; then
 else
   # setup ASTRA-sim build
   setup
-  compile_chakra_et
   patch_htsim
 
   # compile ASTRA-sim
