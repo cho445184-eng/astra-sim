@@ -17,20 +17,15 @@ if(TARGET AstraSim)
     return()
 endif()
 
-if(NOT DEFINED ASTRA_SIM_USE_BUNDLED_PROTOBUF)
-    option(ASTRA_SIM_USE_BUNDLED_PROTOBUF "Build protobuf/Abseil from extern/helper submodules" ON)
-endif()
+# Protobuf, Abseil, and protoc are always built from git submodules (no system packages).
+set(ASTRA_SIM_USE_BUNDLED_PROTOBUF ON CACHE BOOL "Build protobuf/Abseil from extern/helper submodules" FORCE)
 
 # fmt + spdlog (out-of-tree sources need an explicit binary dir)
 add_subdirectory("${ASTRA_SIM_ROOT}/extern/helper/fmt" "${CMAKE_BINARY_DIR}/_deps/fmt")
 option(SPDLOG_FMT_EXTERNAL ON)
 add_subdirectory("${ASTRA_SIM_ROOT}/extern/helper/spdlog" "${CMAKE_BINARY_DIR}/_deps/spdlog")
 
-if(ASTRA_SIM_USE_BUNDLED_PROTOBUF)
-    include("${ASTRA_SIM_ROOT}/cmake/AstraBundledProtobuf.cmake")
-else()
-    find_package(Protobuf REQUIRED)
-endif()
+include("${ASTRA_SIM_ROOT}/cmake/AstraBundledProtobuf.cmake")
 
 file(GLOB _astra_sim_srcs
     "${ASTRA_SIM_ROOT}/astra-sim/system/*.cc"
@@ -47,38 +42,21 @@ file(GLOB _astra_sim_srcs
     "${ASTRA_SIM_ROOT}/extern/graph_frontend/chakra/src/feeder_v3/*.cpp"
     "${ASTRA_SIM_ROOT}/extern/remote_memory_backend/analytical/*.cc")
 
-if(ASTRA_SIM_USE_BUNDLED_PROTOBUF)
-    list(APPEND _astra_sim_srcs "${ASTRA_CHAKRA_PROTO_SRC}")
-else()
-    file(GLOB _chakra_proto_srcs "${ASTRA_SIM_ROOT}/extern/graph_frontend/chakra/schema/protobuf/*.cc")
-    list(APPEND _astra_sim_srcs ${_chakra_proto_srcs})
-endif()
+list(APPEND _astra_sim_srcs "${ASTRA_CHAKRA_PROTO_SRC}")
 
 add_library(AstraSim STATIC ${_astra_sim_srcs})
 
-if(ASTRA_SIM_USE_BUNDLED_PROTOBUF)
-    add_dependencies(AstraSim astra_chakra_proto_gen)
-endif()
+add_dependencies(AstraSim astra_chakra_proto_gen)
 
 target_link_libraries(AstraSim PUBLIC fmt::fmt spdlog::spdlog)
-
-if(ASTRA_SIM_USE_BUNDLED_PROTOBUF)
-    target_link_libraries(AstraSim PUBLIC AstraSimProtobufDeps)
-else()
-    target_link_libraries(AstraSim PUBLIC ${Protobuf_LIBRARIES})
-endif()
+target_link_libraries(AstraSim PUBLIC AstraSimProtobufDeps)
 
 target_include_directories(AstraSim PUBLIC "${ASTRA_SIM_ROOT}")
 target_include_directories(AstraSim PUBLIC "${ASTRA_SIM_ROOT}/extern/graph_frontend/chakra")
 target_include_directories(AstraSim PUBLIC "${ASTRA_SIM_ROOT}/extern/graph_frontend/chakra/src/third_party/utils")
 target_include_directories(AstraSim PRIVATE "${ASTRA_SIM_ROOT}/extern/helper")
 
-if(ASTRA_SIM_USE_BUNDLED_PROTOBUF)
-    target_include_directories(AstraSim BEFORE PUBLIC "${ASTRA_CHAKRA_PROTO_OUT_DIR}")
-else()
-    target_include_directories(AstraSim PUBLIC "${ASTRA_SIM_ROOT}/extern/graph_frontend/chakra/schema/protobuf")
-    target_include_directories(AstraSim PUBLIC ${Protobuf_INCLUDE_DIR})
-endif()
+target_include_directories(AstraSim BEFORE PUBLIC "${ASTRA_CHAKRA_PROTO_OUT_DIR}")
 
 set_target_properties(AstraSim PROPERTIES
     COMPILE_WARNING_AS_ERROR OFF

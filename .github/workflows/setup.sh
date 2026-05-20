@@ -13,8 +13,8 @@ apt -y install gcc-11 g++-11 make cmake
 apt -y install clang-format 
 apt -y install libboost-dev libboost-program-options-dev
 apt -y install python3.11 python3-pip
-apt -y install libprotobuf-dev protobuf-compiler
-apt -y install openmpi-bin openmpi-doc libopenmpi-dev
+# C++ build uses bundled protobuf/Abseil/protoc and ns-3 bundled libbgp (git submodules).
+# No system protoc, libprotobuf, Abseil, libbgp, or OpenMPI packages required for compilation.
 
 pip3 install --upgrade pip
 
